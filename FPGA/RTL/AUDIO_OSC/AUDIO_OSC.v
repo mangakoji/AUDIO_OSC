@@ -28,8 +28,7 @@ module AUDIO_OSC #(
     , input         VRLOC_DAT_i
     , output        DAC_P_o 
     , output        DAC_N_o 
-
-
+    , output        T_EN_WAVE_CTR_o
 ) ;
     function time log2;             //time is reg unsigned [63:0]
         input time value ;
@@ -73,9 +72,9 @@ module AUDIO_OSC #(
     reg             BIN2BCD_ON        ;
     assign ENCBIN_XDIRECT_i = ENCBIN_XDIRECT ; //
 
-    wire [14 :0] pluse_n ;
+    wire [14 :0] pulse_n ;
     wire [14+8:0] freq ;
-    assign freq = pluse_n * 25 ;
+    assign freq = pulse_n * 25 ;
     reg [7:0]   SUP_DIGITS ;
     TM1638_LED_KEY_DRV #(
           .C_FCK    ( C_FCK         )// Hz
@@ -151,7 +150,7 @@ module AUDIO_OSC #(
     ) ; //VR_LOC_DET
 
 
-//    wire [14 :0] pluse_n ;
+//    wire [14 :0] pulse_n ;
     // 254*32=32512Hz max
     // 1111_1110_0000_0.00 max
     wire [ 3 :0]    oct_a ;
@@ -159,7 +158,7 @@ module AUDIO_OSC #(
     assign oct_a = 3*OCT_CTR + VR_LOC[6 +:2] ; //max 12
     assign oct = (oct_a >= 8) ? 8 : oct_a ; 
     // 10000.00
-    assign pluse_n = ({1'b1 , VR_LOC[5:0]}) << (3*OCT_CTR + VR_LOC[6+:2]) ;
+    assign pulse_n = ({1'b1 , VR_LOC[5:0]}) << (3*OCT_CTR + VR_LOC[6+:2]) ;
     wire    EN_WAVE_CTR ;
     SUBREG_TIM_DIV #(
           .C_PERIOD_W   ( log2(C_FCK)  ) //
@@ -171,7 +170,7 @@ module AUDIO_OSC #(
         , .PULSE_N_i        ( pulse_n << (12-2) )
         , .EN_CK_o          ( EN_WAVE_CTR    )
     ) ;
-    
+    assign T_EN_WAVE_CTR_o = EN_WAVE_CTR ;
     reg [11:0]  WAVE_CTR ;
     always @(posedge CK_i or negedge XARST_i)
         if ( ~ XARST_i )
@@ -186,7 +185,7 @@ module AUDIO_OSC #(
           .CK_i     ( CK_i      )
         , .XARST_i  ( XARST_i   )
         , .EN_CK_i  ( EN_CK     )
-        , .DAT_i    ( WAVE_CTR  )//2's -h800 0 +7FFF
+        , .DAT_i    ( {~WAVE_CTR[11],WAVE_CTR[10:0]}  )//2's -h800 0 +7FFF
         , .SIN_o    ( SIN       )//2's -h800 0 +h800
     ) ;
 
@@ -195,15 +194,18 @@ module AUDIO_OSC #(
         if ( ~ XARST_i )
             WAVE_MODE <= 2'b00 ;
         else
-            if (KEYS[5] & KEYS_D[5])
-                WAVE_MODE <= WAVE_MODE + 1 ;
+            if (EN_CK)
+                if (KEYS[5] & ~ KEYS_D[5])
+                    WAVE_MODE <= WAVE_MODE + 1 ;
 
     reg [11:0] WAVE ;
     always @(posedge CK_i or negedge XARST_i)
         if ( ~ XARST_i )
             WAVE <= 12'h000 ;
         else if ( EN_CK )
-            if ( WAVE_MODE[0]) //triangle wave
+            if (WAVE_MODE == 2'b00)
+                WAVE <= { ~ SIN[11] , SIN[10:0]} ;
+            else if ( WAVE_MODE == 2'b01) //triangle wave
                 WAVE <=  
                 {
                     ~ WAVE_CTR[11]
@@ -218,8 +220,10 @@ module AUDIO_OSC #(
                      ^
                      {WAVE_CTR[9:0],1'b0}
                 } ;
-            else //SIN
-                WAVE <= {~SIN[11] , SIN[10:0]} ;
+            else if (WAVE_MODE == 2'b10)
+                WAVE <= SIN ;
+            else //==11
+                WAVE <= WAVE_CTR ;
 
     DELTA_SIGMA_1BIT_DAC #(
         .C_DAT_W    ( 12 )

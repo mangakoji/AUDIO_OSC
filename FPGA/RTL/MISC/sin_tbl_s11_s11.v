@@ -1,6 +1,7 @@
 // SIN_TBL_s11_s11.v
 //
 //
+//170522su      :debug C_XCLIP_1POINT0
 //170516tu      :add EN_CK_i , CK&XARST add tail suffix _i
 //               mod  C_1POINT0_ON  -> C_XCLIP_1POINT0
 //151220su      :mk easy to inference ROM coding in MAX10
@@ -11,7 +12,8 @@
 //151215tu      :mod selectanble to clip 1.0
 //151213su      :1st.
 module SIN_TBL_s11_s11 #(
-        parameter C_XCLIP_1POINT0 = 0
+        parameter C_XCLIP_1POINT0 = 0 //0: CLIP
+                                      //1: non CLIP
 )(
           CK_i
         , XARST_i
@@ -21,7 +23,7 @@ module SIN_TBL_s11_s11 #(
 );
 
         localparam integer C_QQ_W = 
-                (C_XCLIP_1POINT0 !=0) ?
+                (C_XCLIP_1POINT0 !=0) ? //0:clip 1:non clip
                         13
                 :
                         12 
@@ -41,6 +43,7 @@ module SIN_TBL_s11_s11 #(
         wire    [ 8 :0] SIN_ROM_DAT     ;
         SIN_ROM_4s11_s11 u_SIN_ROM (
                   .CK_i         ( CK_i          )
+                , .EN_CK_i      ( EN_CK_i       )
                 , .ADR_i        ( sin_adr       )
                 , .QQ_o         ( SIN_ROM_DAT   )
         ) ;
@@ -66,7 +69,7 @@ module SIN_TBL_s11_s11 #(
                 if ( ~ XARST_i ) begin
                         SIN <= 'd0 ;
                 end else if (EN_CK_i) begin
-                        if (C_XCLIP_1POINT0 != 0) begin
+                        if (C_XCLIP_1POINT0 != 0) begin //0:clip 1:non_clip
                                 if ( ZERO )
                                         SIN <= 13'd0 ;
                                 else if ( MAX_MIN )

@@ -112,6 +112,7 @@ module AUDIO_OSC_TOP(
     wire    VRLOC_DAT_i   ;
     wire    DAC_P_o       ;
     wire    DAC_N_o       ;
+    wire    T_EN_WAVE_CTR_o  ;
     AUDIO_OSC #(
         .C_FCK  ( C_FCK )
     ) AUDIO_OSC (
@@ -128,6 +129,7 @@ module AUDIO_OSC_TOP(
         , .VRLOC_DAT_i      ( VRLOC_DAT_i   )
         , .DAC_P_o          ( DAC_P_o       )
         , .DAC_N_o          ( DAC_N_o       )
+        , .T_EN_WAVE_CTR_o  ( T_EN_WAVE_CTR_o  )
     ) ;                       
     assign P124 = ( LED_MOSI_OE_o ) ? LED_MOSI_o : 1'bZ ; //DIO
 //    assign P124 = LED_MOSI_o ;
@@ -141,7 +143,7 @@ module AUDIO_OSC_TOP(
 
     assign P17 = DAC_P_o ;
     assign P14 = DAC_N_o ;
-
+    assign P13 = T_EN_WAVE_CTR_o    ;
 
     assign XLED_R_o = ~ 1'b0 ;
     assign XLED_G_o = ~ 1'b0 ;
