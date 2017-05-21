@@ -50,8 +50,8 @@ module SIN_TBL_s11_s11 #(
        
         reg     [ 9 :0] SIN_ADR_D     ;
         reg     [ 9 :0] SIN_ADR_DD    ;
-        always @(posedge CK_i) 
-            if ( XARST_i) begin
+        always @(posedge CK_i or negedge XARST_i) 
+            if ( ~ XARST_i) begin
                 SIN_ADR_D  <= 'd0 ;
                 SIN_ADR_DD <= 'd0 ;
             end else if ( EN_CK_i) begin

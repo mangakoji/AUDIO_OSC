@@ -143,7 +143,7 @@ module AUDIO_OSC_TOP(
 
     assign P17 = DAC_P_o ;
     assign P14 = DAC_N_o ;
-    assign P13 = T_EN_WAVE_CTR_o    ;
+    assign P13 = DAC_P_o ;
 
     assign XLED_R_o = ~ 1'b0 ;
     assign XLED_G_o = ~ 1'b0 ;

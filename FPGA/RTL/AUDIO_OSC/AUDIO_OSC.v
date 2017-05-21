@@ -203,9 +203,9 @@ module AUDIO_OSC #(
         if ( ~ XARST_i )
             WAVE <= 12'h000 ;
         else if ( EN_CK )
-            if (WAVE_MODE == 2'b00)
+            if (~WAVE_MODE[0])// == 2'b00)
                 WAVE <= { ~ SIN[11] , SIN[10:0]} ;
-            else if ( WAVE_MODE == 2'b01) //triangle wave
+            else //if ( WAVE_MODE == 2'b01) //triangle wave
                 WAVE <=  
                 {
                     ~ WAVE_CTR[11]
@@ -220,10 +220,10 @@ module AUDIO_OSC #(
                      ^
                      {WAVE_CTR[9:0],1'b0}
                 } ;
-            else if (WAVE_MODE == 2'b10)
-                WAVE <= SIN ;
-            else //==11
-                WAVE <= WAVE_CTR ;
+//            else if (WAVE_MODE == 2'b10)
+//                WAVE <= SIN ;
+//            else //==11
+//                WAVE <= WAVE_CTR ;
 
     DELTA_SIGMA_1BIT_DAC #(
         .C_DAT_W    ( 12 )
