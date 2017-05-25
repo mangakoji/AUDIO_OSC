@@ -110,6 +110,7 @@ module AUDIO_OSC_TOP(
     wire    VRLOC_PATN_P_o;
     wire    VRLOC_PATN_N_o;
     wire    VRLOC_DAT_i   ;
+    wire    VR_VRLOC_DAT_i;
     wire    DAC_P_o       ;
     wire    DAC_N_o       ;
     wire    T_EN_WAVE_CTR_o  ;
@@ -127,6 +128,7 @@ module AUDIO_OSC_TOP(
         , .VRLOC_PATN_P_o   ( VRLOC_PATN_P_o)
         , .VRLOC_PATN_N_o   ( VRLOC_PATN_N_o)
         , .VRLOC_DAT_i      ( VRLOC_DAT_i   )
+        , .VR_VRLOC_DAT_i   ( VR_VRLOC_DAT_i)
         , .DAC_P_o          ( DAC_P_o       )
         , .DAC_N_o          ( DAC_N_o       )
         , .T_EN_WAVE_CTR_o  ( T_EN_WAVE_CTR_o  )
@@ -140,6 +142,10 @@ module AUDIO_OSC_TOP(
     assign P38 = VRLOC_PATN_P_o ;
     assign VRLOC_DAT_i = P39 ;
     assign P41 = VRLOC_PATN_N_o ;
+
+    assign P46 = VRLOC_PATN_P_o ;
+    assign VR_VRLOC_DAT_i = P47 ;
+    assign P48 = VRLOC_PATN_N_o ;
 
     assign P17 = DAC_P_o ;
     assign P14 = DAC_N_o ;

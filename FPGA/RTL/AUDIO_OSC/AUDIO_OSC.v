@@ -7,6 +7,7 @@
 // GitHub :@mangakoji
 //
 //
+//2017-05-25th :add wavevolume
 //2017-05-20sa :1ce write up
 //2017-05-16su  :1st
 
@@ -26,6 +27,7 @@ module AUDIO_OSC #(
     , output        VRLOC_PATN_P_o
     , output        VRLOC_PATN_N_o
     , input         VRLOC_DAT_i
+    , input         VR_VRLOC_DAT_i
     , output        DAC_P_o 
     , output        DAC_N_o 
     , output        T_EN_WAVE_CTR_o
@@ -140,13 +142,16 @@ module AUDIO_OSC #(
 
 
     wire    [ 7 :0] VR_LOC ;
-    VR_LOC_DET VR_LOC_DET(
+    wire    [ 7 :0] VR_VR_LOC ;
+    VR_LOC_DET #(
+          .C_CH_N   (  2            )
+    )VR_LOC_DET(
           .CK_i     ( CK_i          )
         , .XARST_i  ( XARST_i       )
         , .TPAT_P_o ( VRLOC_PATN_P_o)
         , .TPAT_N_o ( VRLOC_PATN_N_o)
-        , .DAT_i    ( VRLOC_DAT_i   )
-        , . LOC_o   ( VR_LOC        )
+        , .DAT_i    ( {VR_VRLOC_DAT_i , VRLOC_DAT_i}   )
+        , . LOC_o   ({VR_VR_LOC,  VR_LOC}  )
     ) ; //VR_LOC_DET
 
 
@@ -198,15 +203,15 @@ module AUDIO_OSC #(
                 if (KEYS[5] & ~ KEYS_D[5])
                     WAVE_MODE <= WAVE_MODE + 1 ;
 
-    reg [11:0] WAVE ;
+    reg [11:0] WAVE_REGU ;
     always @(posedge CK_i or negedge XARST_i)
         if ( ~ XARST_i )
-            WAVE <= 12'h000 ;
+            WAVE_REGU <= 12'h000 ;
         else if ( EN_CK )
             if (~WAVE_MODE[0])// == 2'b00)
-                WAVE <= { ~ SIN[11] , SIN[10:0]} ;
+                WAVE_REGU <= { ~ SIN[11] , SIN[10:0]} ;
             else //if ( WAVE_MODE == 2'b01) //triangle wave
-                WAVE <=  
+                WAVE_REGU <=  
                 {
                     ~ WAVE_CTR[11]
                     , 
@@ -221,18 +226,26 @@ module AUDIO_OSC #(
                      {WAVE_CTR[9:0],1'b0}
                 } ;
 //            else if (WAVE_MODE == 2'b10)
-//                WAVE <= SIN ;
+//                WAVE_REGU <= SIN ;
 //            else //==11
-//                WAVE <= WAVE_CTR ;
+//                WAVE_REGU <= WAVE_CTR ;
+    reg [11+8:0] WAVE ;
+    always @(posedge CK_i or negedge XARST_i)
+        if ( ~ XARST_i )
+            WAVE <= 20'h000 ;
+        else if ( EN_CK )
+            WAVE <= {~WAVE_REGU[11],WAVE_REGU[10:0]} * VR_VR_LOC ;
+
+
 
     DELTA_SIGMA_1BIT_DAC #(
         .C_DAT_W    ( 12 )
     )DELTA_SIGMA_1BIT_DAC (
-          .CK       ( CK_i      )
-        , .XARST_i  ( XARST_i   )
-        , .DAT_i    ( WAVE      ) //str ofs
-        , .QQ_o     ( DAC_P_o   )
-        , .XQQ_o    ( DAC_N_o   )
+          .CK       ( CK_i                      )
+        , .XARST_i  ( XARST_i                   )
+        , .DAT_i    ( {~WAVE[19] , WAVE[18:8]}  ) //str ofs
+        , .QQ_o     ( DAC_P_o                   )
+        , .XQQ_o    ( DAC_N_o                   )
 ) ;
           
 
