@@ -1,13 +1,16 @@
 //VR_LOC_DET.v
 //  VR_LOC_DET 
 //  volume(Variable Register) location ditector
+//
+//170526fr  004 :add C_SHIFT_LPF for adjust LPF cuttoff 
 //170525th  003 :support multi potention memter , ch_n split.
 //170407f   002 :P-N combinearign center but...
 //170326u   001 :new for VR_LOC_DET
 //
 
 module VR_LOC_DET #(
-    parameter C_CH_N = 1
+      parameter C_CH_N = 1
+    , parameter C_SHIFT_LPF = 17
 )(
       input                     CK_i
     , input                     XARST_i
@@ -139,7 +142,7 @@ module VR_LOC_DET #(
             assign LOC_PN[g_ch] = {CMP_P[g_ch] , ~ CMP_N[g_ch]} ;
             IIR_LPF #(
                   .C_DAT_W  ( 9    )
-                , .C_SHIFT  ( 17    )   //=17 in CK_EN 48MHz 
+                , .C_SHIFT  ( C_SHIFT_LPF    )   //=17 in CK_EN 48MHz 
                                         // ,tau ?=2.73ms,fc=58.3Hz
                                         // fc = fck/(2*pi*((2**C_SHIFT)))
                                         // (2**C_SHIFT) = fck/fc/2/pi

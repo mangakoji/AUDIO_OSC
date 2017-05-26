@@ -7,6 +7,7 @@
 // GitHub :@mangakoji
 //
 //
+//170526fr      :adj VR loc stabiliser LPF C_SHIFT_LPF
 //2017-05-25th :add wavevolume
 //2017-05-20sa :1ce write up
 //2017-05-16su  :1st
@@ -144,7 +145,8 @@ module AUDIO_OSC #(
     wire    [ 7 :0] VR_LOC ;
     wire    [ 7 :0] VR_VR_LOC ;
     VR_LOC_DET #(
-          .C_CH_N   (  2            )
+          .C_CH_N       (  2            )
+        , .C_SHIFT_LPF  (  23           )//17:fc=58Hz:23:0.9Hz
     )VR_LOC_DET(
           .CK_i     ( CK_i          )
         , .XARST_i  ( XARST_i       )
@@ -234,7 +236,7 @@ module AUDIO_OSC #(
         if ( ~ XARST_i )
             WAVE <= 20'h000 ;
         else if ( EN_CK )
-            WAVE <= {~WAVE_REGU[11],WAVE_REGU[10:0]} * VR_VR_LOC ;
+            WAVE <= {{9{~WAVE_REGU[11]}},WAVE_REGU[10:0]} * VR_VR_LOC ;
 
 
 
@@ -243,7 +245,7 @@ module AUDIO_OSC #(
     )DELTA_SIGMA_1BIT_DAC (
           .CK       ( CK_i                      )
         , .XARST_i  ( XARST_i                   )
-        , .DAT_i    ( {~WAVE[19] , WAVE[18:8]}  ) //str ofs
+        , .DAT_i    ( {~WAVE[19] , WAVE [18:8]} ) //str ofs
         , .QQ_o     ( DAC_P_o                   )
         , .XQQ_o    ( DAC_N_o                   )
 ) ;
